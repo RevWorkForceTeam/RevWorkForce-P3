@@ -75,12 +75,12 @@ services/**
 !services/**/.gitkeep
 
 # To push a service's full code, simply uncomment its name below:
-# !services/user-service/**
-# !services/employee-management-service/**
-# !services/leave-service/**
-# !services/performance-service/**
-# !services/notification-service/**
-# !services/reporting-service/**
+ !services/user-service/**
+ !services/employee-management-service/**
+ !services/leave-service/**
+ !services/performance-service/**
+ !services/notification-service/**
+ !services/reporting-service/**
 *.war
 *.ear
 *.zip
