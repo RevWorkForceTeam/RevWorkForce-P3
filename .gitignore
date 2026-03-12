@@ -69,7 +69,18 @@ docker-compose.override.yml
 **/docker/volumes/
 
 # Microservices (Internal)
-services/
+# This keeps the folders on GitHub but ignores the code inside them.
+services/**
+!services/**/
+!services/**/.gitkeep
+
+# To push a service's full code, simply uncomment its name below:
+# !services/user-service/**
+# !services/employee-management-service/**
+# !services/leave-service/**
+# !services/performance-service/**
+# !services/notification-service/**
+# !services/reporting-service/**
 *.war
 *.ear
 *.zip
