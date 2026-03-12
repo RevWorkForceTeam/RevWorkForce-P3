@@ -1,0 +1,116 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE_TAG = "latest"
+        // Add your Docker Hub/Registry credentials ID here if pushing
+        // DOCKER_REGO_CREDS = 'docker-hub-credentials'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Backend Services') {
+            steps {
+                script {
+                    def services = [
+                        'infrastructure/config-server',
+                        'infrastructure/eureka-server',
+                        'infrastructure/api-gateway',
+                        'services/user-service',
+                        'services/notification-service',
+                        'services/employee-management-service',
+                        'services/leave-service',
+                        'services/performance-service',
+                        'services/reporting-service'
+                    ]
+                    
+                    for (service in services) {
+                        dir(service) {
+                            echo "Building ${service}..."
+                            if (isUnix()) {
+                                sh "mvn clean package -DskipTests"
+                            } else {
+                                bat "mvn clean package -DskipTests"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                dir('frontend/revworkforce-ui') {
+                    echo "Building Angular Frontend..."
+                    script {
+                        if (isUnix()) {
+                            sh "npm install"
+                            sh "npm run build --configuration=production"
+                        } else {
+                            bat "npm install"
+                            bat "npm run build --configuration=production"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build & Tag') {
+            steps {
+                script {
+                    echo "Building Docker Images..."
+                    // Building using centralized docker-compose
+                    if (isUnix()) {
+                        sh "docker-compose -f devops/docker/docker-compose.yml build"
+                    } else {
+                        bat "docker-compose -f devops/docker/docker-compose.yml build"
+                    }
+                }
+            }
+        }
+
+        stage('Local Test Run') {
+            steps {
+                script {
+                    echo "Starting Application in Docker..."
+                    if (isUnix()) {
+                        sh "docker-compose -f devops/docker/docker-compose.yml up -d"
+                    } else {
+                        bat "docker-compose -f devops/docker/docker-compose.yml up -d"
+                    }
+                    echo "Application is up at http://localhost:4200"
+                }
+            }
+        }
+
+        // Optional: stage for pushing images
+        /*
+        stage('Push to Registry') {
+            steps {
+                script {
+                    docker.withRegistry('', DOCKER_REGO_CREDS) {
+                        // push images logic
+                    }
+                }
+            }
+        }
+        */
+    }
+
+    post {
+        always {
+            echo "CI/CD Pipeline Finished"
+        }
+        success {
+            echo "Build successful! All services are ready."
+        }
+        failure {
+            echo "Build failed. Please check the logs."
+        }
+    }
+}
