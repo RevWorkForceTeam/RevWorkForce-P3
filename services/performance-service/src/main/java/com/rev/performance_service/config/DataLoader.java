@@ -19,7 +19,7 @@ public class DataLoader implements CommandLineRunner {
             // John Doe (3)
             PerformanceReview review1 = new PerformanceReview();
             review1.setUserId(3L);
-            review1.setYear(2026);
+            review1.setReviewYear(2026);
             review1.setDeliverables("Completed P3 Microservices Migration");
             review1.setAccomplishments("Successfully split the monolith into 9 services");
             review1.setImprovements("Need to focus more on integration testing");

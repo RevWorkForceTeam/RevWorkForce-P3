@@ -90,6 +90,9 @@ public class LeaveReportServiceImpl implements LeaveReportService {
         stats.put("approvedLeaves", 0);
         stats.put("pendingLeaves", 0);
         stats.put("rejectedLeaves", 0);
+        stats.put("casualLeaves", 0);
+        stats.put("sickLeaves", 0);
+        stats.put("paidLeaves", 0);
         return stats;
     }
 
@@ -109,7 +112,13 @@ public class LeaveReportServiceImpl implements LeaveReportService {
     private String resolveLeaveTypeKey(Long leaveTypeId) {
         try {
             return leaveTypeRepository.findById(leaveTypeId)
-                    .map(type -> type.getName().toLowerCase().replaceAll("\\s+", "") + "Leaves")
+                    .map(type -> {
+                        String name = type.getName().toLowerCase();
+                        if (name.contains("casual")) return "casualLeaves";
+                        if (name.contains("sick")) return "sickLeaves";
+                        if (name.contains("paid")) return "paidLeaves";
+                        return name.replaceAll("\\s+", "") + "Leaves";
+                    })
                     .orElse("otherLeaves");
         } catch (Exception e) {
             return "otherLeaves";

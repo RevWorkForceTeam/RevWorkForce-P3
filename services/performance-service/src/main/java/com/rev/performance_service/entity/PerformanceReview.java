@@ -22,8 +22,8 @@ public class PerformanceReview extends BaseEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(nullable = false)
-    private int year;
+    @Column(name = "review_year", nullable = false)
+    private int reviewYear;
 
     private String deliverables;
     @com.fasterxml.jackson.annotation.JsonProperty("areasOfAccomplishment")

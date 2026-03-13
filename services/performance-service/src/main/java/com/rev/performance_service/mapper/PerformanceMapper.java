@@ -21,7 +21,7 @@ public class PerformanceMapper {
         Map<String, Object> map = new HashMap<>();
         map.put("id", review.getId());
         map.put("userId", review.getUserId());
-        map.put("year", review.getYear());
+        map.put("year", review.getReviewYear());
         map.put("deliverables", review.getDeliverables());
         map.put("areasOfAccomplishment", review.getAccomplishments());
         map.put("areasOfAccomplishments", review.getAccomplishments());

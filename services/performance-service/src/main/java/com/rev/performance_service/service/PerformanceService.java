@@ -13,7 +13,7 @@ import java.util.List;
 public interface PerformanceService {
 
     // --- Performance Reviews ---
-    PerformanceReview createReview(Long userId, int year, String deliverables, String accomplishments, String improvements, int selfRating);
+    PerformanceReview createReview(Long userId, int reviewYear, String deliverables, String accomplishments, String improvements, int selfRating);
 
     PerformanceReview submitReview(Long reviewId);
 
