@@ -21,24 +21,7 @@ Default Credentials
 🌟 Overview
 RevWorkforce (P3) is the microservices evolution of our HRM platform. It decomposes the monolithic system into 9 specialized services, ensuring high availability, independent scalability, and robust fault tolerance.
 
-🏗️ Architecture
-The platform follows a Distributed Microservices Pattern:
 
-┌─────────────────────────────────────────────────────────┐
-│                    Angular 18 Frontend                  │
-└───────────────┬─────────────────────────────────────────┘
-                │
-┌───────────────▼───────────────┐      ┌────────────────────────┐
-│      API Gateway (8080)       │◄─────┤   Eureka Server (8761) │
-│   (Auth, Routing, Security)   │      │  (Service Discovery)   │
-└───────────────┬───────────────┘      └────────────────────────┘
-                │
-                ├───────► [User Service] (8081)
-                ├───────► [Leave Service] (8082)
-                ├───────► [Performance Service] (8083)
-                ├───────► [Employee Management] (8084)
-                ├───────► [Notification Service] (8085)
-                └───────► [Reporting Service] (8086)
 🛠️ Technology Stack
 Backend (Microservices)
 Framework: Spring Boot 3.2.2 / Spring Cloud 2023
