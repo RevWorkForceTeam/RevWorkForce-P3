@@ -1,52 +1,132 @@
-# 🚀 RevWorkForce-P3: Enterprise HRMS Microservices Platform
+ RevWorkforce - Enterprise Microservices Platform (P3)
+A cloud-native, scalable Human Resource Management (HRM) system built with Spring Cloud and Angular, designed to streamline corporate workflows through a distributed architecture.
 
-RevWorkForce is a modern, scalable Human Resource Management System built on a **Microservices Architecture**. This platform automates workforce management, leave tracking, performance appraisals, and real-time notifications.
+📋 Table of Contents
 
----
+Overview
 
-## 🏛️ Project Architecture
+System Architecture
 
-The system is divided into **Infrastructure Services** (Core) and **Business Services** (Domain).
+Technology Stack
 
-### Core Infrastructure
-- **API Gateway (Port 8080):** Central entry point with JWT authentication and routing.
-- **Config Server (Port 8888):** Centralized external configuration repository.
-- **Eureka Server (Port 8761):** Service Discovery and Load Balancing.
+Key Features
 
-### Business Microservices
-- **User Service (8081):** Auth & Profile management.
-- **Leave Service (8082):** Leave applications & Balance tracking.
-- **Performance Service (8083):** Goal setting & Appraisals.
-- **Employee Management (8084):** Org structure & Announcements.
-- **Notification Service (8085):** Real-time system alerts.
-- **Reporting Service (8086):** Analytics & Dashboards.
+Infrastructure Setup
 
-### Frontend
-- **Angular UI (Port 4200):** Premium, responsive dashboard.
+CI/CD & DevOps
 
----
+Running the Application
 
-## 📋 Prerequisites
+Default Credentials
+🌟 Overview
+RevWorkforce (P3) is the microservices evolution of our HRM platform. It decomposes the monolithic system into 9 specialized services, ensuring high availability, independent scalability, and robust fault tolerance.
 
-Ensure you have the following installed:
-- **Java 17+** (JDK)
-- **Node.js 18+** & **Angular CLI**
-- **Docker Desktop** (with 8GB+ RAM allocated)
-- **Maven** (optional, handled by Docker/Jenkins)
+🏗️ Architecture
+The platform follows a Distributed Microservices Pattern:
 
----
+┌─────────────────────────────────────────────────────────┐
+│                    Angular 18 Frontend                  │
+└───────────────┬─────────────────────────────────────────┘
+                │
+┌───────────────▼───────────────┐      ┌────────────────────────┐
+│      API Gateway (8080)       │◄─────┤   Eureka Server (8761) │
+│   (Auth, Routing, Security)   │      │  (Service Discovery)   │
+└───────────────┬───────────────┘      └────────────────────────┘
+                │
+                ├───────► [User Service] (8081)
+                ├───────► [Leave Service] (8082)
+                ├───────► [Performance Service] (8083)
+                ├───────► [Employee Management] (8084)
+                ├───────► [Notification Service] (8085)
+                └───────► [Reporting Service] (8086)
+🛠️ Technology Stack
+Backend (Microservices)
+Framework: Spring Boot 3.2.2 / Spring Cloud 2023
+Infrastructure: Netflix Eureka (Discovery), Spring Cloud Gateway, Config Server
+Communication: OpenFeign (Inter-service), REST (Client-to-Service)
+Security: JWT (JSON Web Tokens) with cross-service validation
+Database: MySQL (Distributed instances)
+Code Quality: SonarQube & JaCoCo
+
+Frontend
+Framework: Angular 18.2
+UI Framework: Vanilla CSS & Bootstrap 5.3
+Build Tool: Angular CLI (Optimized for Docker builds)
+DevOps & Infrastructure
+Containerization: Docker & Docker Compose
+CI/CD: Jenkins (Pipeline-as-Code)
+Analysis: SonarQube Community Edition
+
+✨ Features
+Admin Features
+Centralized Management: Full control over employee lifecycle and org structure.
+Leave Quotas: Custom leave type definitions (Sick, Annual, Casual).
+System monitoring: View the health status of all 9 microservices.
+Manager Features
+Team Hierarchy: Manage direct reports and approve workforce requests.
+Goal Orchestration: Set and track KPIs for the entire team.
+Employee Features
+Self-Service: Apply for leaves, track balances, and update profiles.
+Reporting: View personal performance charts and reporting history.
+
+🚀 Infrastructure Setup
+1. Prerequisites
+JDK 17+
+Docker Desktop (8GB RAM recommended)
+Node.js 18+
+2. Properties Repository
+This application pulls its properties from a centralized Git repo via the Config Server.
+
+3. Docker Deployment
+The entire ecosystem is orchestrated via Docker Compose:
+
+bash
+# Start all 10 services + MySQL + Jenkins
+docker-compose -f devops/docker/docker-compose.yml up -d
+🔄 CI/CD & DevOps
+The project includes a robust Jenkinsfile with the following pipeline stages:
+
+Checkout: Pulls latest code from GitHub.
+Build Backend: Parallel Maven builds for all services.
+Build Frontend: Production build with NODE_OPTIONS=--max-old-space-size=4096.
+Sonar Scan: Deep security analysis for JS, TS, and Java files.
+Docker Push: Tags and pushes images to Docker Hub under thulasikumarp.
+🔑 Default Credentials
+Admin Account
+Email: admin@gmail.com
+Password: admin123
+Infrastructure
+Jenkins: http://localhost:8088 (User: thulasikumarp)
+SonarQube: http://localhost:9000 (User: admin)
+Eureka Dashboard: http://localhost:8761
+
+📁 Project Structure
+text
+RevWorkForce-P3/
+├── infrastructure/         # Gateway, Eureka, Config Server
+├── services/               # User, Leave, Performance, etc.
+├── frontend/               # Angular UI
+├── devops/                 # Dockerfiles, Jenkinsfile, Compose
+└── init-db.sql             # Database startup script
+
+🧼 Security Features
+Stateless Auth: Every request is validated at the Gateway and propagated via headers.
+Resource Protection: Only Admins can reach management endpoints via Gateway rules.
+Vault Integration: Secrets are handled via environment variables in Docker.
+
+
 
 ## 🛠️ Local Development Setup
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/thulasikumar0423/RevWorkForce-P3.git
+git clone https://github.com/RevWorkForceTeam/RevWorkForce-P3.git
 cd RevWorkForce-P3
 ```
 
 ### 2. Configuration & Properties
 The centralized properties are managed by the Config Server. You can find the property templates in the team repository:
-- **Source Repository:** `https://github.com/RevWorkForceTeam/RevWorkForce-P3.git`
+- **Source Repository:** `https://github.com/RevWorkForceTeam/RevWorkForce-Config.git`
 - Ensure your `mysql` and `jwt` secrets are updated in the `application.yml` files within the config repo.
 
 ### 3. Running with Docker Compose (Recommended)
