@@ -1,17 +1,12 @@
 package com.rev.user_service.service.impl;
 
-import com.rev.user_service.client.EmployeeServiceClient;
-import com.rev.user_service.client.LeaveServiceClient;
-import com.rev.user_service.client.ReportingServiceClient;
 import com.rev.user_service.dto.request.CreateUserRequest;
 import com.rev.user_service.dto.request.UpdateUserRequest;
 import com.rev.user_service.dto.response.UserResponse;
 import com.rev.user_service.entity.Role;
-import com.rev.user_service.entity.User;
-import com.rev.user_service.exception.BadRequestException;
-import com.rev.user_service.exception.ResourceNotFoundException;
-import com.rev.user_service.repository.UserRepository;
-import com.rev.user_service.security.PasswordEncoderUtil;
+import com.rev.user_service.service.UserAccountService;
+import com.rev.user_service.service.UserDirectoryService;
+import com.rev.user_service.service.UserRelationshipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,150 +14,89 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserManagementServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserAccountService accountService;
 
     @Mock
-    private PasswordEncoderUtil passwordEncoder;
+    private UserRelationshipService relationshipService;
 
     @Mock
-    private LeaveServiceClient leaveServiceClient;
-
-    @Mock
-    private EmployeeServiceClient employeeServiceClient;
-
-    @Mock
-    private ReportingServiceClient reportingServiceClient;
+    private UserDirectoryService directoryService;
 
     @InjectMocks
     private UserManagementServiceImpl userManagementService;
 
-    private User user;
+    private UserResponse userResponse;
     private CreateUserRequest createRequest;
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
-                .id(1L)
-                .employeeId("EMP001")
-                .email("test@rev.com")
-                .firstName("John")
-                .lastName("Doe")
-                .role(Role.EMPLOYEE)
-                .password("encoded")
-                .active(true)
-                .build();
+        userResponse = new UserResponse();
+        userResponse.setId(1L);
+        userResponse.setName("John Doe");
+        userResponse.setEmail("test@rev.com");
+        userResponse.setRole(Role.EMPLOYEE);
 
         createRequest = new CreateUserRequest();
         createRequest.setEmail("test@rev.com");
         createRequest.setFirstName("John");
         createRequest.setLastName("Doe");
-        createRequest.setPassword("password");
-        createRequest.setRole(Role.EMPLOYEE);
     }
 
     @Test
     void createUser_Success() {
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(userRepository.findAll()).thenReturn(new ArrayList<>());
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        UserResponse response = userManagementService.createUser(createRequest);
-
-        assertNotNull(response);
-        assertEquals("John Doe", response.getName());
-        verify(userRepository).save(any(User.class));
-        verify(leaveServiceClient, atLeastOnce()).assignBalance(any());
-    }
-
-    @Test
-    void createUser_EmailExists() {
-        when(userRepository.existsByEmail(anyString())).thenReturn(true);
-
-        assertThrows(BadRequestException.class, () -> userManagementService.createUser(createRequest));
+        when(accountService.createUser(any())).thenReturn(userResponse);
+        UserResponse result = userManagementService.createUser(createRequest);
+        assertNotNull(result);
+        assertEquals("John Doe", result.getName());
+        verify(accountService).createUser(createRequest);
     }
 
     @Test
     void getUserById_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-
-        UserResponse response = userManagementService.getUserById(1L);
-
-        assertNotNull(response);
-        assertEquals("John Doe", response.getName());
-    }
-
-    @Test
-    void getUserById_NotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> userManagementService.getUserById(1L));
+        when(accountService.getUserById(1L)).thenReturn(userResponse);
+        UserResponse result = userManagementService.getUserById(1L);
+        assertNotNull(result);
+        assertEquals("John Doe", result.getName());
+        verify(accountService).getUserById(1L);
     }
 
     @Test
     void updateUser_Success() {
         UpdateUserRequest updateRequest = new UpdateUserRequest();
-        updateRequest.setFirstName("Johnny");
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        UserResponse response = userManagementService.updateUser(1L, updateRequest);
-
-        assertNotNull(response);
-        verify(userRepository).save(user);
+        when(accountService.updateUser(eq(1L), any())).thenReturn(userResponse);
+        UserResponse result = userManagementService.updateUser(1L, updateRequest);
+        assertNotNull(result);
+        verify(accountService).updateUser(1L, updateRequest);
     }
 
     @Test
     void deactivateUser_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-
         userManagementService.deactivateUser(1L);
-
-        assertFalse(user.getActive());
-        verify(userRepository).save(user);
+        verify(accountService).deactivateUser(1L);
     }
 
     @Test
     void changePassword_Success() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("old", "encoded")).thenReturn(true);
-        when(passwordEncoder.encode("new")).thenReturn("new_encoded");
-
         userManagementService.changePassword(1L, "old", "new");
-
-        verify(userRepository).save(user);
-        assertEquals("new_encoded", user.getPassword());
-    }
-
-    @Test
-    void changePassword_IncorrectCurrent() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("wrong", "encoded")).thenReturn(false);
-
-        assertThrows(BadRequestException.class, () -> userManagementService.changePassword(1L, "wrong", "new"));
+        verify(accountService).changePassword(1L, "old", "new");
     }
 
     @Test
     void getEmployeeDirectory_Success() {
-        when(userRepository.findAll()).thenReturn(java.util.Collections.singletonList(user));
-        
-        List<com.rev.user_service.dto.response.EmployeeDirectoryResponse> directory = userManagementService.getEmployeeDirectory();
-        
-        assertFalse(directory.isEmpty());
-        assertEquals("John Doe", directory.get(0).getName());
+        when(directoryService.getEmployeeDirectory()).thenReturn(Collections.emptyList());
+        List<?> result = userManagementService.getEmployeeDirectory();
+        assertNotNull(result);
+        verify(directoryService).getEmployeeDirectory();
     }
 }

@@ -36,9 +36,15 @@ public class LeaveServiceTest {
     private NotificationServiceClient notificationServiceClient;
     @Mock
     private ReportingServiceClient reportingServiceClient;
+    @Mock
+    private com.rev.leave_service.service.HolidayService holidayService;
+    @Mock
+    private com.rev.leave_service.service.LeaveTypeService leaveTypeService;
+    @Mock
+    private com.rev.leave_service.service.LeaveReportService leaveReportService;
 
     @InjectMocks
-    private LeaveService leaveService;
+    private com.rev.leave_service.service.impl.LeaveServiceImpl leaveService;
 
     private Leave leave;
     private LeaveBalance balance;
@@ -65,6 +71,10 @@ public class LeaveServiceTest {
     void applyLeave_Success() {
         when(leaveBalanceRepository.findByUserIdAndLeaveTypeId(10L, 1L)).thenReturn(Optional.of(balance));
         when(leaveRepository.save(any(Leave.class))).thenReturn(leave);
+        
+        Map<String, Object> managerMap = new HashMap<>();
+        managerMap.put("id", 100L);
+        when(userServiceClient.getManager(10L)).thenReturn(managerMap);
 
         Leave result = leaveService.applyLeave(10L, 1L, LocalDate.now(), LocalDate.now(), "Vacation");
 
@@ -129,8 +139,7 @@ public class LeaveServiceTest {
     void createLeaveType_Success() {
         LeaveType type = new LeaveType();
         type.setName("Annual");
-        when(leaveTypeRepository.existsByName("Annual")).thenReturn(false);
-        when(leaveTypeRepository.save(any())).thenReturn(type);
+        when(leaveTypeService.createLeaveType("Annual", 15)).thenReturn(type);
 
         LeaveType result = leaveService.createLeaveType("Annual", 15);
 

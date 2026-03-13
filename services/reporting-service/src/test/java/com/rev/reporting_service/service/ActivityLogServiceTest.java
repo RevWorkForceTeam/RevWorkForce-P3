@@ -1,5 +1,7 @@
 package com.rev.reporting_service.service;
 
+import com.rev.reporting_service.service.impl.ActivityLogServiceImpl;
+
 import com.rev.reporting_service.client.UserClient;
 import com.rev.reporting_service.dto.ActivityLogResponse;
 import com.rev.reporting_service.entity.ActivityLog;
@@ -33,7 +35,7 @@ public class ActivityLogServiceTest {
     private UserClient userClient;
 
     @InjectMocks
-    private ActivityLogService activityLogService;
+    private ActivityLogServiceImpl activityLogService;
 
     private ActivityLog log;
 

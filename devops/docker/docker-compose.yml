@@ -229,9 +229,25 @@ services:
     networks:
       - revworkforce-network
 
+  jenkins:
+    build:
+      context: ../../
+      dockerfile: devops/docker/jenkins.Dockerfile
+    container_name: jenkins
+    ports:
+      - "8088:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../:/repo
+    networks:
+      - revworkforce-network
+
 networks:
   revworkforce-network:
     driver: bridge
 
 volumes:
   mysql-data:
+  jenkins-data:

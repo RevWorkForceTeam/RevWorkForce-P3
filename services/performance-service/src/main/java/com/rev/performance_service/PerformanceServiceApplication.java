@@ -6,6 +6,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+@org.springframework.boot.autoconfigure.domain.EntityScan("com.rev.performance_service.entity")
+@org.springframework.data.jpa.repository.config.EnableJpaRepositories("com.rev.performance_service.repository")
 public class PerformanceServiceApplication {
 
 	public static void main(String[] args) {

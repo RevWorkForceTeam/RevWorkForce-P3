@@ -42,10 +42,10 @@ public class PerformanceServiceImpl implements PerformanceService {
     // --- Performance Reviews ---
 
     @Override
-    public PerformanceReview createReview(Long userId, int year, String deliverables, String accomplishments, String improvements, int selfRating) {
+    public PerformanceReview createReview(Long userId, int reviewYear, String deliverables, String accomplishments, String improvements, int selfRating) {
         PerformanceReview review = new PerformanceReview();
         review.setUserId(userId);
-        review.setYear(year);
+        review.setReviewYear(reviewYear);
         review.setDeliverables(deliverables);
         review.setAccomplishments(accomplishments);
         review.setImprovements(improvements);
@@ -53,7 +53,7 @@ public class PerformanceServiceImpl implements PerformanceService {
         review.setStatus(ReviewStatus.DRAFT);
         
         PerformanceReview saved = reviewRepository.save(review);
-        logActivity(userId, "REVIEW_CREATED", "Created performance review for year " + year);
+        logActivity(userId, "REVIEW_CREATED", "Created performance review for year " + reviewYear);
         return saved;
     }
 
@@ -93,7 +93,7 @@ public class PerformanceServiceImpl implements PerformanceService {
         } catch (Exception e) {}
         
         PerformanceReview saved = reviewRepository.save(review);
-        logActivity(review.getUserId(), "REVIEW_SUBMITTED", "Submitted performance review for year " + review.getYear());
+        logActivity(review.getUserId(), "REVIEW_SUBMITTED", "Submitted performance review for year " + review.getReviewYear());
         return saved;
     }
 

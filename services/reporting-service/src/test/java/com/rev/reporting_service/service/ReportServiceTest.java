@@ -27,8 +27,16 @@ public class ReportServiceTest {
     @Mock
     private EmployeeClient employeeClient;
 
+    @org.mockito.Spy
+    private java.util.concurrent.Executor executor = new java.util.concurrent.Executor() {
+        @Override
+        public void execute(Runnable command) {
+            command.run();
+        }
+    };
+
     @InjectMocks
-    private ReportService reportService;
+    private com.rev.reporting_service.service.impl.ReportServiceImpl reportService;
 
     @Test
     void getDashboard_Success() {

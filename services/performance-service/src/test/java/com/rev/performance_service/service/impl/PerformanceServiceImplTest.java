@@ -1,6 +1,9 @@
 package com.rev.performance_service.service.impl;
 
 import com.rev.performance_service.entity.*;
+import com.rev.performance_service.client.NotificationClient;
+import com.rev.performance_service.client.UserClient;
+import com.rev.performance_service.client.ReportingServiceClient;
 import java.time.LocalDate;
 import com.rev.performance_service.repository.GoalRepository;
 import com.rev.performance_service.repository.ReviewRepository;
@@ -24,6 +27,12 @@ public class PerformanceServiceImplTest {
     private ReviewRepository reviewRepository;
     @Mock
     private GoalRepository goalRepository;
+    @Mock
+    private UserClient userClient;
+    @Mock
+    private NotificationClient notificationClient;
+    @Mock
+    private ReportingServiceClient reportingServiceClient;
 
     @InjectMocks
     private PerformanceServiceImpl performanceService;
@@ -36,7 +45,7 @@ public class PerformanceServiceImplTest {
         review = new PerformanceReview();
         review.setId(1L);
         review.setUserId(10L);
-        review.setYear(2026);
+        review.setReviewYear(2026);
         review.setStatus(ReviewStatus.DRAFT);
 
         goal = new Goal();
@@ -53,7 +62,7 @@ public class PerformanceServiceImplTest {
         PerformanceReview result = performanceService.createReview(10L, 2026, "D", "A", "I", 5);
 
         assertNotNull(result);
-        assertEquals(2026, result.getYear());
+        assertEquals(2026, result.getReviewYear());
         verify(reviewRepository).save(any());
     }
 

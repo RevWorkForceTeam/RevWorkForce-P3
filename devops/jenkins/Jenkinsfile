@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE_TAG = "latest"
-        // Add your Docker Hub/Registry credentials ID here if pushing
-        // DOCKER_REGO_CREDS = 'docker-hub-credentials'
+        DOCKER_HUB_USER = "thulasikumarp"
+        DOCKER_REGO_CREDS = 'docker-hub-credentials'
     }
 
     stages {
@@ -43,6 +43,36 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def services = [
+                        'infrastructure/api-gateway',
+                        'services/user-service',
+                        'services/notification-service',
+                        'services/employee-management-service',
+                        'services/leave-service',
+                        'services/performance-service',
+                        'services/reporting-service'
+                    ]
+                    
+                    for (service in services) {
+                        dir(service) {
+                            echo "Running SonarQube analysis for ${service}..."
+                            // Assuming Sonar scanner is configured in Jenkins or using Maven plugin
+                            // We need to provide the Sonar host URL
+                            // Jenkins is in a container, so we use the sonarqube container name
+                            if (isUnix()) {
+                                sh "mvn sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -Dsonar.token=squ_404cf10b2035070d22d42ef43ae825b1a7542056"
+                            } else {
+                                bat "mvn sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -Dsonar.token=squ_404cf10b2035070d22d42ef43ae825b1a7542056"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Build Frontend') {
             steps {
                 dir('frontend/revworkforce-ui') {
@@ -50,10 +80,36 @@ pipeline {
                     script {
                         if (isUnix()) {
                             sh "npm install"
-                            sh "npm run build --configuration=production"
+                            sh "export NODE_OPTIONS=--max-old-space-size=4096 && npm run build --configuration=production"
                         } else {
                             bat "npm install"
-                            bat "npm run build --configuration=production"
+                            bat "set NODE_OPTIONS=--max-old-space-size=4096 && npm run build --configuration=production"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Frontend Sonar Scan') {
+            steps {
+                dir('frontend/revworkforce-ui') {
+                    echo "Running SonarQube scan for Frontend..."
+                    script {
+                        // Assuming sonar-scanner is available in the environment
+                        if (isUnix()) {
+                            sh "npx sonar-scanner \
+                                -Dsonar.projectKey=revworkforce-frontend \
+                                -Dsonar.sources=src \
+                                -Dsonar.host.url=http://sonarqube:9000 \
+                                -Dsonar.token=squ_404cf10b2035070d22d42ef43ae825b1a7542056 \
+                                -Dsonar.javascript.node.maxspace=4096"
+                        } else {
+                            bat "npx sonar-scanner \
+                                -Dsonar.projectKey=revworkforce-frontend \
+                                -Dsonar.sources=src \
+                                -Dsonar.host.url=http://sonarqube:9000 \
+                                -Dsonar.token=squ_404cf10b2035070d22d42ef43ae825b1a7542056 \
+                                -Dsonar.javascript.node.maxspace=4096"
                         }
                     }
                 }
@@ -66,9 +122,9 @@ pipeline {
                     echo "Building Docker Images..."
                     // Building using centralized docker-compose
                     if (isUnix()) {
-                        sh "docker-compose -f devops/docker/docker-compose.yml build"
+                        sh "docker-compose -f devops/docker/docker-compose.yml build mysql config-server eureka-server user-service notification-service employee-management-service leave-service performance-service reporting-service api-gateway revworkforce-ui"
                     } else {
-                        bat "docker-compose -f devops/docker/docker-compose.yml build"
+                        bat "docker-compose -f devops/docker/docker-compose.yml build mysql config-server eureka-server user-service notification-service employee-management-service leave-service performance-service reporting-service api-gateway revworkforce-ui"
                     }
                 }
             }
@@ -79,27 +135,38 @@ pipeline {
                 script {
                     echo "Starting Application in Docker..."
                     if (isUnix()) {
-                        sh "docker-compose -f devops/docker/docker-compose.yml up -d"
+                        sh "docker-compose -f devops/docker/docker-compose.yml up -d mysql config-server eureka-server user-service notification-service employee-management-service leave-service performance-service reporting-service api-gateway revworkforce-ui"
                     } else {
-                        bat "docker-compose -f devops/docker/docker-compose.yml up -d"
+                        bat "docker-compose -f devops/docker/docker-compose.yml up -d mysql config-server eureka-server user-service notification-service employee-management-service leave-service performance-service reporting-service api-gateway revworkforce-ui"
                     }
                     echo "Application is up at http://localhost:4200"
                 }
             }
         }
 
-        // Optional: stage for pushing images
-        /*
         stage('Push to Registry') {
             steps {
                 script {
-                    docker.withRegistry('', DOCKER_REGO_CREDS) {
-                        // push images logic
+                    echo "Pushing Images to Docker Hub..."
+                    withCredentials([usernamePassword(credentialsId: DOCKER_REGO_CREDS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        
+                        def services = [
+                            'config-server', 'eureka-server', 'api-gateway', 'user-service', 
+                            'notification-service', 'employee-management-service', 'leave-service', 
+                            'performance-service', 'reporting-service', 'revworkforce-ui'
+                        ]
+                        
+                        for (service in services) {
+                            def localImage = "docker-${service}"
+                            def remoteImage = "${DOCKER_HUB_USER}/revworkforce-${service}:${DOCKER_IMAGE_TAG}"
+                            sh "docker tag ${localImage} ${remoteImage}"
+                            sh "docker push ${remoteImage}"
+                        }
                     }
                 }
             }
         }
-        */
     }
 
     post {
